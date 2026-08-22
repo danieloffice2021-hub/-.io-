@@ -38,27 +38,39 @@
             width: 120px;
             font-weight: bold;
         }
-        .form-group input, .form-group select {
+        .form-group input {
             flex: 1;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
         }
-        button {
-            width: 100%;
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button-group button {
+            flex: 1;
             padding: 12px;
-            background-color: #3498db;
             color: white;
             border: none;
             border-radius: 4px;
             font-size: 18px;
             cursor: pointer;
-            margin-top: 10px;
             transition: background-color 0.3s;
         }
-        button:hover {
+        .btn-calc {
+            background-color: #3498db;
+        }
+        .btn-calc:hover {
             background-color: #2980b9;
+        }
+        .btn-clear {
+            background-color: #e74c3c;
+        }
+        .btn-clear:hover {
+            background-color: #c0392b;
         }
         .result-section {
             margin-top: 25px;
@@ -103,35 +115,7 @@
     </div>
     <div class="form-group">
         <label for="ounce">盎司：</label>
-        <!-- 已匯入圖片中的所有盎司選項 -->
-        <select id="ounce">
-            <option value="">請選擇盎司</option>
-            <option value="8">8 盎司</option>
-            <option value="10">10 盎司</option>
-            <option value="12">12 盎司</option>
-            <option value="14">14 盎司</option>
-            <option value="16">16 盎司</option>
-            <option value="18">18 盎司</option>
-            <option value="20">20 盎司</option>
-            <option value="22">22 盎司</option>
-            <option value="24">24 盎司</option>
-            <option value="26">26 盎司</option>
-            <option value="28">28 盎司</option>
-            <option value="30">30 盎司</option>
-            <option value="32">32 盎司</option>
-            <option value="34">34 盎司</option>
-            <option value="36">36 盎司</option>
-            <option value="38">38 盎司</option>
-            <option value="40">40 盎司</option>
-            <option value="42">42 盎司</option>
-            <option value="44">44 盎司</option>
-            <option value="46">46 盎司</option>
-            <option value="48">48 盎司</option>
-            <option value="50">50 盎司</option>
-            <option value="52">52 盎司</option>
-            <option value="54">54 盎司</option>
-            <option value="56">56 盎司</option>
-        </select>
+        <input type="number" id="ounce" placeholder="輸入盎司數字 (例如 8)">
     </div>
     <div class="form-group">
         <label for="orderQty">客訂張數：</label>
@@ -142,7 +126,12 @@
         <input type="number" id="unitPrice" step="0.0001" placeholder="輸入每張價格">
     </div>
 
-    <button onclick="calculate()">開始計算</button>
+    <!-- 按鈕區域 -->
+    <div class="button-group">
+        <button class="btn-calc" onclick="calculate()">開始計算</button>
+        <button class="btn-clear" onclick="clearForm()">清除資料</button>
+    </div>
+    
     <div id="errorMsg" class="error"></div>
 
     <!-- 輸出區域 -->
@@ -155,32 +144,12 @@
 </div>
 
 <script>
-    // 已完整匯入你提供的對照表數據
+    // 盎司對照表數據
     const ounceTable = {
-        "8": 3760,
-        "10": 3000,
-        "12": 2480,
-        "14": 2120,
-        "16": 1880,
-        "18": 1680,
-        "20": 1500,
-        "22": 1365,
-        "24": 1240,
-        "26": 1156,
-        "28": 1060,
-        "30": 1002,
-        "32": 940,
-        "34": 884,
-        "36": 835,
-        "38": 791,
-        "40": 752,
-        "42": 716,
-        "44": 683,
-        "46": 653,
-        "48": 626,
-        "50": 601,
-        "52": 578,
-        "54": 557,
+        "8": 3760, "10": 3000, "12": 2480, "14": 2120, "16": 1880, "18": 1680,
+        "20": 1500, "22": 1365, "24": 1240, "26": 1156, "28": 1060, "30": 1002,
+        "32": 940, "34": 884, "36": 835, "38": 791, "40": 752, "42": 716,
+        "44": 683, "46": 653, "48": 626, "50": 601, "52": 578, "54": 557,
         "56": 537
     };
 
@@ -191,39 +160,40 @@
         // 讀取輸入值
         const length = parseFloat(document.getElementById('length').value);
         const width = parseFloat(document.getElementById('width').value);
-        const ounce = document.getElementById('ounce').value;
+        const ounceInput = document.getElementById('ounce').value;
         const orderQty = parseFloat(document.getElementById('orderQty').value);
         const unitPrice = parseFloat(document.getElementById('unitPrice').value);
 
         // 基本防呆驗證
-        if (!length || !width || !ounce || !orderQty || !unitPrice) {
+        if (!length || !width || !ounceInput || !orderQty || !unitPrice) {
             document.getElementById('errorMsg').innerText = '請填寫所有必要的數值（長、寬、盎司、客訂張數、客戶單張價）。';
             document.getElementById('resultSection').style.display = 'none';
             return;
         }
 
-        if (width === 0) {
-            document.getElementById('errorMsg').innerText = '寬度不能為 0。';
+        if (width === 0 || length === 0) {
+            document.getElementById('errorMsg').innerText = '長度與寬度不能為 0。';
             return;
         }
 
         // 1. 取得查表張數
-        const ounceSheets = ounceTable[ounce];
+        const ounceSheets = ounceTable[ounceInput];
         if (!ounceSheets) {
-             document.getElementById('errorMsg').innerText = '找不到該盎司的對應張數，請檢查對照表設定。';
+             document.getElementById('errorMsg').innerText = '找不到該盎司的對應張數，請檢查輸入的盎司數字是否在對照表中。';
+             document.getElementById('resultSection').style.display = 'none';
              return;
         }
 
-        // 2. 計算一噸張數：取整數(張數(盎司) * 長 / 寬 * 936)
-        const tonSheets = Math.floor((ounceSheets * length / width) * 936);
+        // 2. 計算一噸張數
+        const tonSheets = Math.floor((ounceSheets / length / width) * 936);
 
-        // 3. 計算客訂重量：取整數(客訂張數 / 一噸張數 * 1000 + 0.7)
+        // 3. 計算客訂重量
         let orderWeight = 0;
         if (tonSheets > 0) {
             orderWeight = Math.floor((orderQty / tonSheets * 1000) + 0.7);
         }
 
-        // 4. 計算客訂噸價：四捨五入到整數(一噸張數 * 客戶單張價)
+        // 4. 計算客訂噸價
         const tonPrice = Math.round(tonSheets * unitPrice);
 
         // 顯示結果
@@ -234,6 +204,18 @@
         
         // 顯示結果區塊
         document.getElementById('resultSection').style.display = 'block';
+    }
+
+    // 清除資料的函數
+    function clearForm() {
+        document.getElementById('spec').value = '';
+        document.getElementById('length').value = '';
+        document.getElementById('width').value = '';
+        document.getElementById('ounce').value = '';
+        document.getElementById('orderQty').value = '';
+        document.getElementById('unitPrice').value = '';
+        document.getElementById('errorMsg').innerText = ''; // 清除錯誤訊息
+        document.getElementById('resultSection').style.display = 'none'; // 隱藏結果區塊
     }
 </script>
 
